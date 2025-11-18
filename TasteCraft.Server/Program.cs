@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TasteCraft.Server.Data;
+using TasteCraft.Server.Services;
+using TasteCraft.Server.Services.Contracts;
 
 namespace TasteCraft.Server
 {
@@ -17,6 +19,10 @@ namespace TasteCraft.Server
             builder.Services.AddDbContext<TasteCraftDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+
             builder.Services.AddDefaultIdentity<IdentityUser>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = false;
@@ -25,7 +31,9 @@ namespace TasteCraft.Server
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireDigit = false;
+
             })
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<TasteCraftDbContext>();
 
             builder.Services.AddControllers();

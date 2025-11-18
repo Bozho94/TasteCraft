@@ -244,7 +244,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("TasteCraft.Server.Data.Models.Order", b =>
@@ -296,7 +296,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("TasteCraft.Server.Data.Models.OrderItem", b =>
@@ -336,7 +336,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("TasteCraft.Server.Data.Models.Product", b =>
@@ -375,7 +375,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -37,9 +37,4 @@
     </ProjectReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Services\Contracts\" />
-  </ItemGroup>
-
 </Project>
