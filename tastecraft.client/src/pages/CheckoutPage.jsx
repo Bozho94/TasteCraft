@@ -79,7 +79,7 @@ export default function CheckoutPage() {
                         {error && <div className="alert alert-danger">{error}</div>}
 
                         <div className="mb-3">
-                            <label className="form-label">Име</label>
+                            <label className="form-label">Име и фамилия</label>
                             <input className="form-control" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                         </div>
 
