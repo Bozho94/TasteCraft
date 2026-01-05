@@ -36,9 +36,43 @@ namespace TasteCraft.Server
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<TasteCraftDbContext>();
 
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.Name = ".TasteCraft.Auth";              // ясно име
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.None;           // да се праща cross-site
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                // за да може и на http://localhost при dev (ако има някъде http)
+
+                options.LoginPath = "/Identity/Account/Login";         // казваме КЪДЕ е login
+                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+            });
+
+
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddRazorPages();
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("_myAllowSpecificOrigins", policy =>
+                {
+                    policy
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            // позволява всички http://localhost:XXXX
+                            var uri = new Uri(origin);
+                            return uri.Host == "localhost";
+                        })
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
 
             var app = builder.Build();
 
@@ -53,14 +87,17 @@ namespace TasteCraft.Server
 
             app.UseHttpsRedirection();
 
+            app.UseCors(MyAllowSpecificOrigins);
+
             app.UseAuthentication(); 
             app.UseAuthorization();
 
             app.MapControllers();
+            app.MapRazorPages();
 
             app.MapFallbackToFile("/index.html");
 
-            async Task SeedAdminAsync(WebApplication app)
+          /*  async Task SeedAdminAsync(WebApplication app)
             {
                 using var scope = app.Services.CreateScope();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -92,7 +129,7 @@ namespace TasteCraft.Server
                     await userManager.AddToRoleAsync(user, adminRole);
             }
 
-            await SeedAdminAsync(app);
+            await SeedAdminAsync(app);*/
 
             app.Run();
         }

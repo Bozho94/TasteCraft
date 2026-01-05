@@ -52,5 +52,14 @@ namespace TasteCraft.Server.Controllers
             await _service.UpdateStatusAsync(id, dto.Status);
             return NoContent();
         }
+
+        [HttpGet("admin/details")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllDetails([FromQuery] string? status = null)
+        {
+            var orders = await _service.GetAllDetailsAsync(status);
+            return Ok(orders);
+        }
+
     }
 }

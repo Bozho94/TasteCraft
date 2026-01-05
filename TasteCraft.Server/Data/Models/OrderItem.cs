@@ -23,10 +23,9 @@ namespace TasteCraft.Server.Data.Models
         public string ProductName { get; set; } = null!; // Името на продукта към момента на поръчката
 
         [Precision(10, 2)]
-        public decimal PricePerKg { get; set; }
+        public decimal UnitPrice { get; set; }
 
-        [Precision(10, 2)]
-        public decimal WeightKg { get; set; }
+        public int Quantity { get; set; }
 
         [Precision(10, 2)]
         public decimal LineTotal { get; set; } // PricePerKg * WeightKg

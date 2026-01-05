@@ -8,5 +8,6 @@ namespace TasteCraft.Server.Services.Contracts
         Task<List<OrderListDto>> GetMineAsync(string userId);
         Task<OrderDetailsDto?> GetDetailsAsync(string userId, int orderId, bool isAdmin = false);
         Task UpdateStatusAsync(int orderId, string newStatus);
+        Task <List<OrderDetailsDto>> GetAllDetailsAsync(string? status =null);
     }
 }

@@ -4,9 +4,9 @@
     {
         public string ProductName { get; set; } = null!;
 
-        public decimal PricePerKg { get; set; }
+        public decimal UnitPrice { get; set; }
 
-        public decimal WeightInKg { get; set; }
+        public int Quantity { get; set; }
 
         public decimal LineTotal { get; set; }
     }

@@ -26,7 +26,7 @@ namespace TasteCraft.Server.Services
             {
                 Name = dto.Name,
                 Description = dto.Description,
-                PricePerKg = dto.PricePerKg,
+                PricePerUnit = dto.PricePerUnit,
                 ImageUrl = dto.ImageUrl,
                 CategoryId = dto.CategoryId,
 
@@ -46,8 +46,9 @@ namespace TasteCraft.Server.Services
                {
                    Id = p.Id,
                    Name = p.Name,
-                   PricePerKg = p.PricePerKg,
-                   ImageUrl = p.ImageUrl
+                   PricePerUnit = p.PricePerUnit,
+                   ImageUrl = p.ImageUrl,
+                   Description = p.Description
                })
                .ToListAsync();
         }
@@ -62,7 +63,7 @@ namespace TasteCraft.Server.Services
                     Id = p.Id,
                     Name = p.Name,
                     Description = p.Description,
-                    PricePerKg = p.PricePerKg,
+                    PricePerUnit = p.PricePerUnit,
                     ImageUrl = p.ImageUrl,
                     CategoryId = p.CategoryId,
                     CategoryName = p.Category.Name
@@ -96,7 +97,7 @@ namespace TasteCraft.Server.Services
 
             entity.Name = dto.Name;
             entity.Description = dto.Description;
-            entity.PricePerKg = dto.PricePerKg;
+            entity.PricePerUnit = dto.PricePerUnit;
             entity.ImageUrl = dto.ImageUrl;
             entity.CategoryId = dto.CategoryId;
 

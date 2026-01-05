@@ -4,6 +4,8 @@
     {
         public class Product
         {
+            public const int ProductTypeMaxLength = 50;
+
             public const int NameMaxLength = 100;
 
             public const int DescriptionMaxLength = 500;

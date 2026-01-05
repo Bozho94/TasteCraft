@@ -51,19 +51,19 @@ namespace TasteCraft.Server.Services
                     throw new KeyNotFoundException($"Product {item.ProductId} not found.");
                 }
 
-                if (item.WeightKg <= 0)
+                if (item.Quantity <= 0)
                 {
                     throw new InvalidOperationException("Item weight must be greater than zero.");
                 }
 
-                var lineTotal = Math.Round(product.PricePerKg * item.WeightKg, 2);
+                var lineTotal = Math.Round(product.PricePerUnit * item.Quantity, 2);
 
                 order.Items.Add(new OrderItem
                 {
                     ProductId = item.ProductId,
                     ProductName = product.Name, // историческо копие
-                    PricePerKg = product.PricePerKg, // историческо копие
-                    WeightKg = item.WeightKg,
+                    UnitPrice = product.PricePerUnit, // историческо копие
+                    Quantity = item.Quantity,
                     LineTotal = lineTotal
                 });
 
@@ -76,6 +76,40 @@ namespace TasteCraft.Server.Services
             return order.Id;
 
 
+        }
+
+        public async Task<List<OrderDetailsDto>> GetAllDetailsAsync(string? status = null)
+        {
+            var query = _db.Orders
+                .AsNoTracking();
+
+            if(!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(o => o.Status == status);
+            }
+
+            return await query
+                .OrderByDescending(o => o.Id)
+                .Select(o => new OrderDetailsDto
+                {
+                    Id = o.Id,
+                    OrderNumber = o.OrderNumber,
+                    Status = o.Status,
+                    FullName = o.FullName,
+                    DeliveryAddress = o.DeliveryAddress,
+                    PhoneNumber = o.PhoneNumber,
+                    TotalPrice = o.TotalPrice,
+                    Items = o.Items.Select(oi => new OrderItemDto
+                    {
+                        ProductName = oi.ProductName,
+                        UnitPrice = oi.UnitPrice,
+                        Quantity = oi.Quantity,
+                        LineTotal = oi.LineTotal,
+
+                    }).ToList()
+                })
+                .ToListAsync();
+                
         }
 
         public async Task<OrderDetailsDto?> GetDetailsAsync(string userId, int orderId, bool isAdmin = false)
@@ -103,8 +137,8 @@ namespace TasteCraft.Server.Services
                     Items = o.Items.Select(oi => new OrderItemDto
                     {
                         ProductName = oi.ProductName,
-                        PricePerKg = oi.PricePerKg,
-                        WeightInKg = oi.WeightKg,
+                        UnitPrice = oi.UnitPrice,
+                        Quantity = oi.Quantity,
                         LineTotal = oi.LineTotal
                     }).ToList()
                 }).FirstOrDefaultAsync();

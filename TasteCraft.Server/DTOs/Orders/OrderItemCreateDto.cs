@@ -3,6 +3,6 @@
     public class OrderItemCreateDto
     {
         public int ProductId { get; set; }
-        public decimal WeightKg { get; set; }
+        public int Quantity { get; set; }
     }
 }

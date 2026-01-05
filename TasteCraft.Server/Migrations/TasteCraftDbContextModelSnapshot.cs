@@ -244,7 +244,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("TasteCraft.Server.Data.Models.Order", b =>
@@ -296,7 +296,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("TasteCraft.Server.Data.Models.OrderItem", b =>
@@ -314,10 +314,6 @@ namespace TasteCraft.Server.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("PricePerKg")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
@@ -326,7 +322,10 @@ namespace TasteCraft.Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<decimal>("WeightKg")
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
@@ -336,7 +335,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("TasteCraft.Server.Data.Models.Product", b =>
@@ -367,7 +366,7 @@ namespace TasteCraft.Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<decimal>("PricePerKg")
+                    b.Property<decimal>("PricePerUnit")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
@@ -375,7 +374,7 @@ namespace TasteCraft.Server.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static TasteCraft.Server.EntityConstraints.ValidationConst.Product;
+using TasteCraft.Server.EntityConstraints;
 namespace TasteCraft.Server.Data.Models
 {
     public class Product
@@ -17,7 +18,7 @@ namespace TasteCraft.Server.Data.Models
         public string Description { get; set; } = null!;
 
         [Precision(10, 2)]
-        public decimal PricePerKg { get; set; }
+        public decimal PricePerUnit { get; set; }
 
         [Required]
         public string ImageUrl { get; set; } = null!;
@@ -28,6 +29,7 @@ namespace TasteCraft.Server.Data.Models
 
         [ForeignKey(nameof(CategoryId))]  
         public Category Category { get; set; } = null!;
+
 
     }
 }
