@@ -18,6 +18,7 @@ import AdminOrdersPage from "./pages/AdminOrdersPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import OrderDetailsPage from "./pages/OrderDetailsPage";
+
 function App() {
     const [user, setUser] = useState({
         isAuthenticated: false,
@@ -28,19 +29,20 @@ function App() {
     const navigate = useNavigate();
     const [userLoaded, setUserLoaded] = useState(false);
 
-    useEffect(() => {
-        async function loadUser() {
-            try {
-                const res = await axios.get("/api/auth/me");
-                setUser(res.data);
-            } catch {
-                setUser({ isAuthenticated: false, email: null, roles: [] });
-            } finally {
-                setUserLoaded(true);
-            }
+    async function loadUser() {
+        try {
+            const res = await axios.get("/api/auth/me");
+            setUser(res.data);
+        } catch {
+            setUser({ isAuthenticated: false, email: null, roles: [] });
+        } finally {
+            setUserLoaded(true);
         }
+    }
 
+    useEffect(() => {
         loadUser();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function handleLogout() {
@@ -53,6 +55,30 @@ function App() {
         }
     }
 
+    // ✅ дава Admin ролята на текущия потребител
+    async function handleBecomeAdmin() {
+        try {
+            await axios.post("/api/auth/become-admin");
+            await loadUser();   // обновява roles веднага
+            navigate("/");     
+        } catch (err) {
+            console.error(err);
+            alert("Неуспешно влизане в админ режим.");
+        }
+    }
+
+    // ✅ маха Admin ролята и те връща като обикновен потребител
+    async function handleBecomeUser() {
+        try {
+            await axios.post("/api/auth/become-user");
+            await loadUser();     // обновява roles веднага
+            navigate("/");       
+        } catch (err) {
+            console.error(err);
+            alert("Неуспешно връщане към потребител.");
+        }
+    }
+
     if (!userLoaded) {
         return <SplashScreen />;
     }
@@ -60,9 +86,8 @@ function App() {
     const isAdmin =
         user.isAuthenticated && user.roles && user.roles.includes("Admin");
 
-    const cartKey = user.isAuthenticated && user.email
-        ? user.email.toLowerCase()
-        : null;
+    const cartKey =
+        user.isAuthenticated && user.email ? user.email.toLowerCase() : null;
 
     return (
         <CartProvider cartKey={cartKey}>
@@ -98,6 +123,7 @@ function App() {
                                     {/* Количка само за логнат */}
                                     {user.isAuthenticated && <CartDropdown />}
 
+                                    {/* Бърз бутон за админ поръчки (само ако е админ) */}
                                     {isAdmin && (
                                         <Link
                                             to="/admin/orders"
@@ -106,7 +132,6 @@ function App() {
                                             🧾 Поръчки
                                         </Link>
                                     )}
-
 
                                     {!user.isAuthenticated ? (
                                         <>
@@ -125,43 +150,72 @@ function App() {
                                             </Link>
                                         </>
                                     ) : (
-                                        <>
-                                                <div className="dropdown">
-                                                    <button
-                                                        className="btn btn-outline-light btn-sm dropdown-toggle"
-                                                        type="button"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-expanded="false"
-                                                    >
-                                                        Здравей, {user.email}
-                                                    </button>
+                                        <div className="dropdown">
+                                            <button
+                                                className="btn btn-outline-light btn-sm dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                            >
+                                                Здравей, {user.email}
+                                            </button>
 
-                                                    <ul className="dropdown-menu dropdown-menu-end">
+                                            <ul className="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <Link className="dropdown-item" to="/orders">
+                                                        📦 Моите поръчки
+                                                    </Link>
+                                                </li>
+
+                                                {/* ✅ Ако НЕ е админ -> "Стани админ" */}
+                                                {!isAdmin && (
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item"
+                                                            onClick={handleBecomeAdmin}
+                                                        >
+                                                            🛡️ Стани админ
+                                                        </button>
+                                                    </li>
+                                                )}
+
+                                                {/* ✅ Ако Е админ -> "Стани потребител" */}
+                                                {isAdmin && (
+                                                    <>
                                                         <li>
-                                                            <Link className="dropdown-item" to="/orders">
-                                                                📦 Моите поръчки
+                                                            <Link
+                                                                className="dropdown-item"
+                                                                to="/admin/orders"
+                                                            >
+                                                                🧾 Админ поръчки
                                                             </Link>
                                                         </li>
 
-                                                        {isAdmin && (
-                                                            <li>
-                                                                <Link className="dropdown-item" to="/admin/orders">
-                                                                    🧾 Админ поръчки
-                                                                </Link>
-                                                            </li>
-                                                        )}
-
-                                                        <li><hr className="dropdown-divider" /></li>
-
                                                         <li>
-                                                            <button className="dropdown-item text-danger" onClick={handleLogout}>
-                                                                Изход
+                                                            <button
+                                                                className="dropdown-item"
+                                                                onClick={handleBecomeUser}
+                                                            >
+                                                                👤 Стани потребител
                                                             </button>
                                                         </li>
-                                                    </ul>
-                                                </div>
+                                                    </>
+                                                )}
 
-                                        </>
+                                                <li>
+                                                    <hr className="dropdown-divider" />
+                                                </li>
+
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item text-danger"
+                                                        onClick={handleLogout}
+                                                    >
+                                                        Изход
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -172,10 +226,7 @@ function App() {
                 {/* MAIN CONTENT */}
                 <div className="container-fluid flex-grow-1 mt-3">
                     <Routes>
-                        <Route
-                            path="/"
-                            element={<p>Добре дошли в TasteCraft!</p>}
-                        />
+                        <Route path="/" element={<p>Добре дошли в TasteCraft!</p>} />
 
                         <Route
                             path="/categories/:id"
@@ -187,10 +238,7 @@ function App() {
                             element={<EditCategoryPage isAdmin={isAdmin} />}
                         />
 
-                        <Route
-                            path="/categories/create"
-                            element={<CreateCategoryPage />}
-                        />
+                        <Route path="/categories/create" element={<CreateCategoryPage />} />
 
                         <Route path="/login" element={<LoginPage />} />
 
@@ -211,21 +259,11 @@ function App() {
                             element={<AdminOrdersPage isAdmin={isAdmin} />}
                         />
 
-                        <Route
-                            path="/checkout"
-                            element={<CheckoutPage />}
-                        />
-                        <Route
-                            path="/orders"
-                            element={<MyOrdersPage />}
-                        />
-                        <Route
-                            path="/orders/:id"
-                            element={<OrderDetailsPage />}
-                        />
+                        <Route path="/checkout" element={<CheckoutPage />} />
 
+                        <Route path="/orders" element={<MyOrdersPage />} />
 
-
+                        <Route path="/orders/:id" element={<OrderDetailsPage />} />
                     </Routes>
                 </div>
             </div>

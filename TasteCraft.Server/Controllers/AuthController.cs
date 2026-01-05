@@ -123,5 +123,48 @@ namespace TasteCraft.Server.Controllers
             // 3) Ако успее -> Identity автоматично слага auth cookie в отговора
             return Ok();
         }
+
+        [HttpPost("become-admin")]
+        [Authorize]
+        public async Task<IActionResult> BecomeAdmin()
+        {
+            const string adminRole = "Admin";
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            // ако още не е админ -> правим го админ
+            if (!await _userManager.IsInRoleAsync(user, adminRole))
+            {
+                await _userManager.AddToRoleAsync(user, adminRole);
+            }
+
+            // много важно – обновява cookie-то, за да влезе ролята веднага
+            await _signInManager.RefreshSignInAsync(user);
+
+            return Ok();
+        }
+
+        [HttpPost("become-user")]
+        [Authorize]
+        public async Task<IActionResult> BecomeUser()
+        {
+            const string adminRole = "Admin";
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            if (await _userManager.IsInRoleAsync(user, adminRole))
+            {
+                await _userManager.RemoveFromRoleAsync(user, adminRole);
+                await _signInManager.RefreshSignInAsync(user); // обновява cookie-то
+            }
+
+            return Ok();
+        }
+
     }
 }
