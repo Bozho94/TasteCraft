@@ -31,39 +31,34 @@ namespace TasteCraft.Server
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireDigit = false;
-
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<TasteCraftDbContext>();
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
-                options.Cookie.Name = ".TasteCraft.Auth";              // ясно име
+                options.Cookie.Name = ".TasteCraft.Auth";
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.None;           // да се праща cross-site
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                // за да може и на http://localhost при dev (ако има някъде http)
-
-                options.LoginPath = "/Identity/Account/Login";         // казваме КЪДЕ е login
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; 
+                options.LoginPath = "/Identity/Account/Login";
                 options.AccessDeniedPath = "/Identity/Account/AccessDenied";
             });
-
-
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddRazorPages();
+
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("_myAllowSpecificOrigins", policy =>
+                options.AddPolicy(MyAllowSpecificOrigins, policy =>
                 {
                     policy
                         .SetIsOriginAllowed(origin =>
                         {
-                            // позволява всички http://localhost:XXXX
                             var uri = new Uri(origin);
                             return uri.Host == "localhost";
                         })
@@ -72,7 +67,6 @@ namespace TasteCraft.Server
                         .AllowCredentials();
                 });
             });
-
 
             var app = builder.Build();
 
@@ -89,7 +83,7 @@ namespace TasteCraft.Server
 
             app.UseCors(MyAllowSpecificOrigins);
 
-            app.UseAuthentication(); 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
@@ -97,41 +91,63 @@ namespace TasteCraft.Server
 
             app.MapFallbackToFile("/index.html");
 
-          /*  async Task SeedAdminAsync(WebApplication app)
-            {
-                using var scope = app.Services.CreateScope();
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-                var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-
-                const string adminRole = "Admin";
-                if (!await roleManager.RoleExistsAsync(adminRole))
-                    await roleManager.CreateAsync(new IdentityRole(adminRole));
-
-                var adminEmail = config["Admin:Email"];
-                var adminPassword = config["Admin:Password"];
-
-                if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
-                {
-                    throw new InvalidOperationException("Admin credentials are not configured. Please set Admin:Email and Admin:Password in user-secrets or environment variables.");
-                }
-
-                var user = await userManager.FindByEmailAsync(adminEmail);
-                if (user == null)
-                {
-                    user = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
-                    var create = await userManager.CreateAsync(user, adminPassword);
-                    if (!create.Succeeded)
-                        throw new Exception("Failed to create admin user: " + string.Join("; ", create.Errors.Select(e => e.Description)));
-                }
-
-                if (!await userManager.IsInRoleAsync(user, adminRole))
-                    await userManager.AddToRoleAsync(user, adminRole);
-            }
-
-            await SeedAdminAsync(app);*/
+            // ✅ Seed Admin (идемпотентно: ако вече има admin, няма да го създава пак)
+            await SeedAdminAsync(app);
 
             app.Run();
+        }
+
+        private static async Task SeedAdminAsync(WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            const string adminRole = "Admin";
+
+            // 1) Роля
+            if (!await roleManager.RoleExistsAsync(adminRole))
+            {
+                await roleManager.CreateAsync(new IdentityRole(adminRole));
+            }
+
+            // 2) Креденшъли от config/env. Ако липсват -> не seed-ваме user (не чупим старта)
+            var adminEmail = config["Admin:Email"];
+            var adminPassword = config["Admin:Password"];
+
+            if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+            {
+                return;
+            }
+
+            // 3) User (ако вече съществува -> не го създаваме пак)
+            var user = await userManager.FindByEmailAsync(adminEmail);
+
+            if (user == null)
+            {
+                user = new IdentityUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(user, adminPassword);
+
+                // Ако не успее, не спираме приложението (демо/портфолио)
+                if (!result.Succeeded)
+                {
+                    return;
+                }
+            }
+
+            // 4) Роля към user (ако вече е админ -> не правим нищо)
+            if (!await userManager.IsInRoleAsync(user, adminRole))
+            {
+                await userManager.AddToRoleAsync(user, adminRole);
+            }
         }
     }
 }
