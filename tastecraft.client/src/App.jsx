@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
 
 import { CartProvider } from "./CartContext";
@@ -115,7 +115,9 @@ function App() {
                             <div className="d-flex align-items-center w-100 mt-2 mt-lg-0 justify-content-between">
                                 {/* Ляво */}
                                 <div className="d-flex align-items-center gap-2">
-                                    <CategoriesDropdown isAdmin={isAdmin} />
+                                    {user.isAuthenticated && (
+                                        <CategoriesDropdown isAdmin={isAdmin} />
+                                    )}
                                 </div>
 
                                 {/* Дясно */}
@@ -226,8 +228,29 @@ function App() {
                 {/* MAIN CONTENT */}
                 <div className="container-fluid flex-grow-1 mt-3">
                     <Routes>
-                        <Route path="/" element={<p>Добре дошли в TasteCraft!</p>} />
 
+                        <Route
+                            path="/"
+                            element={
+                                <div className="d-flex flex-column justify-content-center align-items-center text-center"
+                                    style={{ minHeight: "70vh" }}>
+
+                                    <h1 className="mb-4">Добре дошли в TasteCraft!</h1>
+
+                                    {!user.isAuthenticated && (
+                                        <p className="fs-4 text-muted">
+                                            Моля, влезте във вашия профил или се регистрирайте,
+                                            <br />
+                                            за да използвате приложението.
+                                        </p>
+                                    )}
+                                </div>
+                            }
+                        />
+
+
+
+                       
                         <Route
                             path="/categories/:id"
                             element={<CategoryProductsPage isAdmin={isAdmin} />}
@@ -235,10 +258,15 @@ function App() {
 
                         <Route
                             path="/categories/edit/:id"
-                            element={<EditCategoryPage isAdmin={isAdmin} />}
+                            element={isAdmin ? <EditCategoryPage isAdmin={isAdmin} /> : <Navigate to="/login" replace />}
                         />
 
-                        <Route path="/categories/create" element={<CreateCategoryPage />} />
+
+                        <Route
+                            path="/categories/create"
+                            element={isAdmin ? <CreateCategoryPage /> : <Navigate to="/login" replace />}
+                        />
+
 
                         <Route path="/login" element={<LoginPage />} />
 
@@ -246,18 +274,20 @@ function App() {
 
                         <Route
                             path="/products/create"
-                            element={<CreateProductPage isAdmin={isAdmin} />}
+                            element={isAdmin ? <CreateProductPage isAdmin={isAdmin} /> : <Navigate to="/login" replace />}
                         />
 
                         <Route
                             path="/products/edit/:id"
-                            element={<EditProductPage isAdmin={isAdmin} />}
+                            element={isAdmin ? <EditProductPage isAdmin={isAdmin} /> : <Navigate to="/login" replace />}
                         />
+
 
                         <Route
                             path="/admin/orders"
-                            element={<AdminOrdersPage isAdmin={isAdmin} />}
+                            element={isAdmin ? <AdminOrdersPage isAdmin={isAdmin} /> : <Navigate to="/login" replace />}
                         />
+
 
                         <Route path="/checkout" element={<CheckoutPage />} />
 

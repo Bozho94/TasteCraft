@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -66,7 +67,17 @@ export default function LoginPage() {
                 >
                     {loading ? "Влизане..." : "Влез"}
                 </button>
+
+                <div className="text-center mt-3">
+                    <span className="text-muted">Нямате профил?</span>{" "}
+                    <Link to="/register" className="fw-semibold">
+                        Регистрация
+                    </Link>
+                </div>
+
             </form>
         </div>
+
+
     );
 }

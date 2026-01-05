@@ -17,7 +17,7 @@ namespace TasteCraft.Server.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var categories = await _service.GetAllAsync();
@@ -26,7 +26,7 @@ namespace TasteCraft.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
             var category = await _service.GetByIdAsync(id);
