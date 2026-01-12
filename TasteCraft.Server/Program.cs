@@ -91,7 +91,15 @@ namespace TasteCraft.Server
 
             app.MapFallbackToFile("/index.html");
 
-            // ✅ Seed Admin (идемпотентно: ако вече има admin, няма да го създава пак)
+            // Apply migrations (Production too)
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<TasteCraftDbContext>();
+                await db.Database.MigrateAsync();
+            }
+
+
+            // Seed Admin (идемпотентно: ако вече има admin, няма да го създава пак)
             await SeedAdminAsync(app);
 
             app.Run();
