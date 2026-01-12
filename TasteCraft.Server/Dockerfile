@@ -2,13 +2,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy csproj and restore as distinct layers
-COPY TasteCraft.Server/*.csproj TasteCraft.Server/
-RUN dotnet restore TasteCraft.Server/TasteCraft.Server.csproj
+# copy csproj and restore
+COPY *.csproj ./
+RUN dotnet restore TasteCraft.Server.csproj
 
-# Copy everything else and build
+# copy everything else and publish
 COPY . .
-RUN dotnet publish TasteCraft.Server/TasteCraft.Server.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish TasteCraft.Server.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # ===== RUNTIME STAGE =====
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
