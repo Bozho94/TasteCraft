@@ -148,7 +148,7 @@ export default function CategoryProductsPage({ isAdmin } = {}) {
                                     <button
                                         className="btn btn-primary mt-auto"
                                         onClick={() => {
-                                            addItem(p, p.quantity); // p идва от map, quantity е в самия продукт
+                                            addItem(p, p.quantity); 
                                         }}
                                     >
                                         Купи
