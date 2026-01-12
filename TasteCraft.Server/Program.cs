@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 using TasteCraft.Server.Data;
 using TasteCraft.Server.Services;
 using TasteCraft.Server.Services.Contracts;
@@ -40,14 +39,12 @@ namespace TasteCraft.Server
                 options.Cookie.Name = ".TasteCraft.Auth";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; 
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.LoginPath = "/Identity/Account/Login";
                 options.AccessDeniedPath = "/Identity/Account/AccessDenied";
             });
 
             builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
             builder.Services.AddRazorPages();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -60,7 +57,16 @@ namespace TasteCraft.Server
                         .SetIsOriginAllowed(origin =>
                         {
                             var uri = new Uri(origin);
-                            return uri.Host == "localhost";
+
+                            // Dev
+                            if (uri.Host == "localhost")
+                                return true;
+
+                            // Render (frontend URL will be *.onrender.com)
+                            if (uri.Host.EndsWith(".onrender.com"))
+                                return true;
+
+                            return false;
                         })
                         .AllowAnyHeader()
                         .AllowAnyMethod()
@@ -73,13 +79,11 @@ namespace TasteCraft.Server
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            if (app.Environment.IsDevelopment())
+            // On Render HTTPS is terminated by the platform; keep redirect only for local dev.
+            if (!app.Environment.IsProduction())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseHttpsRedirection();
             }
-
-            app.UseHttpsRedirection();
 
             app.UseCors(MyAllowSpecificOrigins);
 
@@ -98,8 +102,7 @@ namespace TasteCraft.Server
                 await db.Database.MigrateAsync();
             }
 
-
-            // Seed Admin (идемпотентно: ако вече има admin, няма да го създава пак)
+            // Seed Admin (idempotent)
             await SeedAdminAsync(app);
 
             app.Run();
@@ -115,13 +118,13 @@ namespace TasteCraft.Server
 
             const string adminRole = "Admin";
 
-            // 1) Роля
+            // 1) Role
             if (!await roleManager.RoleExistsAsync(adminRole))
             {
                 await roleManager.CreateAsync(new IdentityRole(adminRole));
             }
 
-            // 2) Креденшъли от config/env. Ако липсват -> не seed-ваме user (не чупим старта)
+            // 2) Credentials from config/env. If missing -> do nothing (don't break startup)
             var adminEmail = config["Admin:Email"];
             var adminPassword = config["Admin:Password"];
 
@@ -130,7 +133,7 @@ namespace TasteCraft.Server
                 return;
             }
 
-            // 3) User (ако вече съществува -> не го създаваме пак)
+            // 3) User
             var user = await userManager.FindByEmailAsync(adminEmail);
 
             if (user == null)
@@ -144,14 +147,13 @@ namespace TasteCraft.Server
 
                 var result = await userManager.CreateAsync(user, adminPassword);
 
-                // Ако не успее, не спираме приложението (демо/портфолио)
                 if (!result.Succeeded)
                 {
                     return;
                 }
             }
 
-            // 4) Роля към user (ако вече е админ -> не правим нищо)
+            // 4) Add role to user
             if (!await userManager.IsInRoleAsync(user, adminRole))
             {
                 await userManager.AddToRoleAsync(user, adminRole);
